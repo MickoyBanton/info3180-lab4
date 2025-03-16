@@ -76,7 +76,9 @@ def login():
 def get_image(filename):
     return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
 
+
 @app.route("/files")
+@login_required
 def files():
 
     images=get_uploaded_images()
