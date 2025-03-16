@@ -1,6 +1,6 @@
 import os
 from app import app, db, login_manager
-from flask import render_template, request, redirect, url_for, flash, session, abort
+from flask import render_template, request, redirect, url_for, flash, session, abort, send_from_directory
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from app.models import UserProfile
@@ -72,6 +72,18 @@ def login():
         return redirect(url_for("home"))  # The user should be redirected to the upload form instead
     return render_template("login.html", form=form)
 
+@app.route("/uploads/<filename>")
+def get_image(filename):
+    return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+
+@app.route("/files")
+def files():
+
+    images=get_uploaded_images()
+    return render_template("files.html", images=images)
+
+
+
 # user_loader callback. This callback is used to reload the user object from
 # the user ID stored in the session
 @login_manager.user_loader
@@ -81,6 +93,24 @@ def load_user(id):
 ###
 # The functions below should be applicable to all Flask apps.
 ###
+
+def get_uploaded_images():
+
+    upload_folder = app.config['UPLOAD_FOLDER']
+    uploaded_images = []
+
+    # Ensure the folder exists
+    if not os.path.exists(upload_folder):
+        return uploaded_images  # Return an empty list if the folder doesn't exist
+
+    # Iterate over files in the upload directory
+    for subdir, _, files in os.walk(upload_folder):
+        for file in files:
+            if file.lower().endswith(('jpg', 'png')):  # Filter only image files
+                uploaded_images.append(file)
+
+    return uploaded_images
+
 
 # Flash errors from the form if validation fails
 def flash_errors(form):
